@@ -1,0 +1,600 @@
+{
+	"info": {
+		"_postman_id": "hostelhub-api-testing-collection",
+		"name": "HostelHub API Testing",
+		"description": "Complete API test collection for HostelHub – Room Allotment Management System.\n\nBase URL: http://localhost:3000\n\nMake sure the server is running before testing:\n```\nnpm start\n```",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Rooms",
+			"description": "CRUD operations for hostel rooms.",
+			"item": [
+				{
+					"name": "1. Get All Rooms",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/rooms",
+							"host": ["{{baseUrl}}"],
+							"path": ["rooms"]
+						},
+						"description": "Returns all rooms in the database."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has data array', function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json.status).to.eql('success');",
+									"    pm.expect(json.data).to.be.an('array');",
+									"});",
+									"",
+									"pm.test('Each room has id, name, block', function () {",
+									"    const rooms = pm.response.json().data;",
+									"    if (rooms.length > 0) {",
+									"        pm.expect(rooms[0]).to.have.property('id');",
+									"        pm.expect(rooms[0]).to.have.property('name');",
+									"        pm.expect(rooms[0]).to.have.property('block');",
+									"    }",
+									"});"
+								]
+							}
+						}
+					],
+					"response": []
+				},
+				{
+					"name": "2. Get Room by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/rooms/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["rooms", "1"]
+						},
+						"description": "Returns a single room by its ID."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has correct room data', function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json.status).to.eql('success');",
+									"    pm.expect(json.data).to.have.property('id', 1);",
+									"    pm.expect(json.data).to.have.property('name');",
+									"    pm.expect(json.data).to.have.property('block');",
+									"});"
+								]
+							}
+						}
+					],
+					"response": []
+				},
+				{
+					"name": "3. Add Room",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Room 301\",\n    \"block\": \"Block C\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rooms",
+							"host": ["{{baseUrl}}"],
+							"path": ["rooms"]
+						},
+						"description": "Creates a new room with a name and block."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Room created successfully', function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json.status).to.eql('success');",
+									"    pm.expect(json.message).to.eql('Room created successfully');",
+									"    pm.expect(json.data).to.have.property('id');",
+									"    pm.expect(json.data.name).to.eql('Room 301');",
+									"    pm.expect(json.data.block).to.eql('Block C');",
+									"});",
+									"",
+									"// Save the created room ID for later use",
+									"if (pm.response.code === 201) {",
+									"    pm.collectionVariables.set('createdRoomId', pm.response.json().data.id);",
+									"}"
+								]
+							}
+						}
+					],
+					"response": []
+				},
+				{
+					"name": "4. Update Room",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Room 301-Updated\",\n    \"block\": \"Block C-Updated\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/rooms/{{createdRoomId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["rooms", "{{createdRoomId}}"]
+						},
+						"description": "Updates an existing room's name and block. Uses the room ID saved from 'Add Room'."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Room updated successfully', function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json.status).to.eql('success');",
+									"    pm.expect(json.message).to.eql('Room updated successfully');",
+									"    pm.expect(json.data.name).to.eql('Room 301-Updated');",
+									"    pm.expect(json.data.block).to.eql('Block C-Updated');",
+									"});"
+								]
+							}
+						}
+					],
+					"response": []
+				},
+				{
+					"name": "5. Delete Room",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/rooms/{{createdRoomId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["rooms", "{{createdRoomId}}"]
+						},
+						"description": "Deletes an unallotted room. Uses the room ID saved from 'Add Room'."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 204', function () {",
+									"    pm.response.to.have.status(204);",
+									"});"
+								]
+							}
+						}
+					],
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Residents",
+			"description": "Operations for hostel residents.",
+			"item": [
+				{
+					"name": "6. Get All Residents",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/residents",
+							"host": ["{{baseUrl}}"],
+							"path": ["residents"]
+						},
+						"description": "Returns all residents in the database."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has data array', function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json.status).to.eql('success');",
+									"    pm.expect(json.data).to.be.an('array');",
+									"});",
+									"",
+									"pm.test('Each resident has id, name, email', function () {",
+									"    const residents = pm.response.json().data;",
+									"    if (residents.length > 0) {",
+									"        pm.expect(residents[0]).to.have.property('id');",
+									"        pm.expect(residents[0]).to.have.property('name');",
+									"        pm.expect(residents[0]).to.have.property('email');",
+									"    }",
+									"});"
+								]
+							}
+						}
+					],
+					"response": []
+				},
+				{
+					"name": "7. Get Resident by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/residents/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["residents", "1"]
+						},
+						"description": "Returns a single resident by their ID."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has correct resident data', function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json.status).to.eql('success');",
+									"    pm.expect(json.data).to.have.property('id', 1);",
+									"    pm.expect(json.data).to.have.property('name');",
+									"    pm.expect(json.data).to.have.property('email');",
+									"});"
+								]
+							}
+						}
+					],
+					"response": []
+				},
+				{
+					"name": "8. Add Resident",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Suresh Menon\",\n    \"email\": \"suresh.menon@email.com\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/residents",
+							"host": ["{{baseUrl}}"],
+							"path": ["residents"]
+						},
+						"description": "Creates a new resident with a name and email."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Resident created successfully', function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json.status).to.eql('success');",
+									"    pm.expect(json.message).to.eql('Resident created successfully');",
+									"    pm.expect(json.data).to.have.property('id');",
+									"    pm.expect(json.data.name).to.eql('Suresh Menon');",
+									"    pm.expect(json.data.email).to.eql('suresh.menon@email.com');",
+									"});",
+									"",
+									"// Save the created resident ID for later use",
+									"if (pm.response.code === 201) {",
+									"    pm.collectionVariables.set('createdResidentId', pm.response.json().data.id);",
+									"}"
+								]
+							}
+						}
+					],
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Allotments",
+			"description": "Room allotment operations with SQL JOIN.",
+			"item": [
+				{
+					"name": "9. Get All Allotments (JOIN)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/allotments",
+							"host": ["{{baseUrl}}"],
+							"path": ["allotments"]
+						},
+						"description": "Returns all allotments with resident names and room names using SQL JOIN. Response contains joined data instead of raw IDs."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Response has data array', function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json.status).to.eql('success');",
+									"    pm.expect(json.data).to.be.an('array');",
+									"});",
+									"",
+									"pm.test('JOIN returns resident_name, room_name, block', function () {",
+									"    const allotments = pm.response.json().data;",
+									"    if (allotments.length > 0) {",
+									"        pm.expect(allotments[0]).to.have.property('id');",
+									"        pm.expect(allotments[0]).to.have.property('resident_name');",
+									"        pm.expect(allotments[0]).to.have.property('room_name');",
+									"        pm.expect(allotments[0]).to.have.property('block');",
+									"        pm.expect(allotments[0]).to.not.have.property('resident_id');",
+									"        pm.expect(allotments[0]).to.not.have.property('room_id');",
+									"    }",
+									"});"
+								]
+							}
+						}
+					],
+					"response": []
+				},
+				{
+					"name": "10. Create Allotment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"resident_id\": 3,\n    \"room_id\": 4\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/allotments",
+							"host": ["{{baseUrl}}"],
+							"path": ["allotments"]
+						},
+						"description": "Allots a room to a resident. Validates that both the resident and room exist, and that the room is not already allotted."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 201', function () {",
+									"    pm.response.to.have.status(201);",
+									"});",
+									"",
+									"pm.test('Allotment created with JOIN data', function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json.status).to.eql('success');",
+									"    pm.expect(json.message).to.eql('Room allotted successfully');",
+									"    pm.expect(json.data).to.have.property('id');",
+									"    pm.expect(json.data).to.have.property('resident_name');",
+									"    pm.expect(json.data).to.have.property('room_name');",
+									"    pm.expect(json.data).to.have.property('block');",
+									"});"
+								]
+							}
+						}
+					],
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Smart Search",
+			"description": "Smart Search functionality — case-insensitive partial matching on room name and block name using the q query parameter.",
+			"item": [
+				{
+					"name": "11. Smart Search — q=room (lowercase)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/rooms?q=room",
+							"host": ["{{baseUrl}}"],
+							"path": ["rooms"],
+							"query": [
+								{
+									"key": "q",
+									"value": "room"
+								}
+							]
+						},
+						"description": "TEST 1: Search with lowercase 'room'. Should return all rooms whose name or block contains 'room' (case-insensitive)."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Returns matching rooms', function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json.status).to.eql('success');",
+									"    pm.expect(json.data).to.be.an('array');",
+									"    pm.expect(json.data.length).to.be.greaterThan(0);",
+									"});",
+									"",
+									"pm.test('All results contain \"room\" in name (case-insensitive)', function () {",
+									"    const rooms = pm.response.json().data;",
+									"    rooms.forEach(function (room) {",
+									"        const matchName = room.name.toLowerCase().includes('room');",
+									"        const matchBlock = room.block.toLowerCase().includes('room');",
+									"        pm.expect(matchName || matchBlock).to.be.true;",
+									"    });",
+									"});",
+									"",
+									"// Save count for comparison with uppercase test",
+									"pm.collectionVariables.set('searchRoomCount', pm.response.json().data.length);"
+								]
+							}
+						}
+					],
+					"response": []
+				},
+				{
+					"name": "12. Smart Search — q=ROOM (uppercase)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/rooms?q=ROOM",
+							"host": ["{{baseUrl}}"],
+							"path": ["rooms"],
+							"query": [
+								{
+									"key": "q",
+									"value": "ROOM"
+								}
+							]
+						},
+						"description": "TEST 2: Search with uppercase 'ROOM'. Must return EXACTLY the same results as Test 1 (case-insensitive matching)."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Returns matching rooms', function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json.status).to.eql('success');",
+									"    pm.expect(json.data).to.be.an('array');",
+									"    pm.expect(json.data.length).to.be.greaterThan(0);",
+									"});",
+									"",
+									"pm.test('CASE-INSENSITIVE: Same count as lowercase search', function () {",
+									"    const expectedCount = parseInt(pm.collectionVariables.get('searchRoomCount'));",
+									"    const actualCount = pm.response.json().data.length;",
+									"    pm.expect(actualCount).to.eql(expectedCount);",
+									"});"
+								]
+							}
+						}
+					],
+					"response": []
+				},
+				{
+					"name": "13. Smart Search — q=zzz (no match)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/rooms?q=zzz",
+							"host": ["{{baseUrl}}"],
+							"path": ["rooms"],
+							"query": [
+								{
+									"key": "q",
+									"value": "zzz"
+								}
+							]
+						},
+						"description": "TEST 3: Search with 'zzz' which matches nothing. Must return HTTP 200 (NOT 404), an empty array, and the message 'Nothing found'."
+					},
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"type": "text/javascript",
+								"exec": [
+									"pm.test('Status code is 200 (NOT 404)', function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Message is exactly \"Nothing found\"', function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json.message).to.eql('Nothing found');",
+									"});",
+									"",
+									"pm.test('Returns empty rooms array', function () {",
+									"    const json = pm.response.json();",
+									"    pm.expect(json.rooms).to.be.an('array');",
+									"    pm.expect(json.rooms.length).to.eql(0);",
+									"});"
+								]
+							}
+						}
+					],
+					"response": []
+				}
+			]
+		}
+	]
+}
+
